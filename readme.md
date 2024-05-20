@@ -58,3 +58,22 @@ For the i.i.d. stochastic setting on the cycle network:
 The directory for programs in the non-i.i.d. setting on the cycle network is `./non_iid_setting/`. The running of experiments for the non-i.i.d. stochastic setting on the cycle network is the same as that for the i.i.d. stochastic setting on the cycle network.
 
 The programs for adversarial, i.i.d stochastic, and non-i.i.d stochastic settings on the clique network are stored in `./adv_setting_clique/`, `./iid_setting_clique/`, and `./non_iid_setting_clique/`, respectively. The running of experiments on the clique network is the same as that on the cycle network introduced above.
+
+# Citation
+
+If you find our work useful please cite:
+
+```
+@article{LiuZHZJL24,
+  author    = {Jiandong Liu and
+               Lan Zhang and
+               Fengxiang He and
+               Chi Zhang and
+               Shanyang Jiang and
+               Xiang-Yang Li},
+  title     = {Communication-Efficient Regret-Optimal Distributed
+               Online Convex Optimization},
+  journal   = {{IEEE} Trans. Parallel Distributed Syst.},
+  year      = {2024},
+}
+```
