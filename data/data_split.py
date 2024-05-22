@@ -1,5 +1,8 @@
+import sys
+sys.path.append('../')
+
 import numpy as np
-from config_save_load import conf_load
+from data.config_save_load import *
 
 
 def iid_data_split(filename, data, num_of_clients=8, dirname='iid_data/', to_shuffle=True):

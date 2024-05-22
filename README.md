@@ -120,17 +120,18 @@ If the above command takes longer time to deploy the image, please check you hav
 
 - `data/libsvm_data_load.py` downloads the epsilon and covtype.binary datasets from the libsvm repository and store the datasets in '.npy' files. Execution progress for this process is <3 hours. If the above command takes longer time, please check you have sufficient internet connection speed ( > 500kbs).
 
-- `run_experiments_varying_comm.py` reads the choices of the repetition times, the number of learners, and the dataset from the command line. It sequentially runs the algorithms in directories `adv_setting`, `adv_setting_clique`, `iid_setting`, `iid_setting_clique`, `non_iid_setting`, `non_iid_setting_clique`, and outputs the means of loss, the means of classification error, and the communication costs for algorithms in each directory in the `plt_data` folder in each directory. Execution time for this process on a modern system when the repetition time equals 1 with different choices of number of learners and dataset are as follows.
+- `run_experiments_varying_comm.py` reads the choices of the dataset, the number of learners, and the repetition times from the command line. It sequentially runs the algorithms in directories `adv_setting`, `adv_setting_clique`, `iid_setting`, `iid_setting_clique`, `non_iid_setting`, `non_iid_setting_clique`, and outputs the means of loss, the means of classification error, and the communication costs for algorithms in the folder starting with `plot_data` in each directory. Execution time for this process on a modern system when the repetition time equals 1 with different choices of number of learners and dataset are as follows. The estimated execution times are obtained from a PC with CPU i7-11700 and 64GB memory in multiple runs.
 
 | Dataset        | Number of learners | Execution time   |
 |----------------|--------------------|------------------|
 | covtype.binary | 8                  | 30 to 50 minutes |
-| epsilon        | 8                  | 40 to 60 hours   |
+| epsilon        | 8                  | 30 to 35 hours   |
 | covtype.binary | 32                 | 50 to 80 minutes |
-| epsilon        | 32                 | 40 to 60 hours   |
+| epsilon        | 32                 | 15 to 18 hours   |
 
-- `run_experiments_varying_time.py` reads the choices of the repetition times, the number of learners, and the dataset from the command line. It sequentially runs the algorithms in directories `adv_setting`, `adv_setting_clique`, `iid_setting`, `iid_setting_clique`, `non_iid_setting`, `non_iid_setting_clique`, and outputs the means of loss, the means of classification error, and the communication costs for algorithms in each directory in the `plt_data` folder in each directory. Execution time for this process on a modern system when the repetition time equals 1 with different choices of number of learners and dataset are as follows.
-
+- `run_experiments_varying_time.py` reads the choices of the number of learners and the repetition times from the command line. It sequentially runs the algorithms in directories `adv_setting`, `adv_setting_clique`, `iid_setting`, `iid_setting_clique`, `non_iid_setting`, `non_iid_setting_clique` on the covtype.binary dataset, and outputs the means of loss, the means of classification error, and the communication costs for algorithms in each directory in the folder starting with `plot_data` in each directory. Execution time for this process on a modern system when the repetition time equals 1 with different choices of number of learners and dataset are as follows.
+The estimated execution times are obtained from a PC with CPU i7-11700 and 64GB memory in multiple runs. The estimated execution times are obtained from a PC with CPU i7-11700 and 64GB memory in multiple runs.
+- 
 | Dataset        | Number of learners | Execution time |
 |----------------|--------------------|----------------|
 | covtype.binary | 8                  | 4 to 6 hours   |
@@ -144,23 +145,19 @@ i.e.)
 
 `$ docker exec -w /DOCO/data -it doco-exper python libsvm_data_load.py all`, you can replace the last parameter `all` with `epsilon` or `covtype.binary` to run experiments solely on the epsilon or covtype.binary datasets
 
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py covtype.binary 8`
+`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py covtype.binary 8 1`
 
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py covtype.binary 32`
+`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py covtype.binary 32 1`
 
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py epsilon 8`
+`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py epsilon 8 1`, you may skip this experiment if the PC's memory is less than 64GB
 
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py epsilon 32`
+`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-comm.py epsilon 32 1`, you may skip this experiment if the PC's memory is less than 64GB
 
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-time.py covtype.binary 8`
+`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-time.py 8 1`
 
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-time.py covtype.binary 32`
+`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-time.py 32 1`
 
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-time.py epsilon 8`
-
-`$ docker exec -w /DOCO -it doco-exper python run-experiments-varying-time.py epsilon 32`
-
-`$ docker exec -w /DOCO -it doco-exper python draw-plots.py all`, you can replace the last parameter `all` with `epsilon` or `covtype.binary` to run experiments solely on the epsilon or covtype.binary datasets
+`$ docker exec -w /DOCO -it doco-exper python draw-plots.py all`, you can replace the last parameter `all` with `covtype.binary` or `epsilon` to draw plots solely for experiments on the epsilon or covtype.binary datasets
 
 Once they run successfully, you will have performance results as pdf files in the results folder and AI model in the model folder. 
 RMSE of the training and evaluation dataset will be shown in the standard output.

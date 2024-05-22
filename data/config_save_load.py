@@ -22,13 +22,16 @@ def conf_load_libsvm_data(filename='conf.ini'):
         conf_dict = json.load(fd)
     return conf_dict
 
-if __name__ == '__main__':
-    dirname = '../data/original_data/'
-    num_of_clients = 32
-    data_filename = 'covtype.libsvm.binary'
-    # data_filename = 'epsilon_normalized.all'
-    rpt_times = 1
+# if __name__ == '__main__':
+#     dirname = '../data/original_data/'
+#     num_of_clients = 32
+#     data_filename = 'covtype.libsvm.binary'
+#     # data_filename = 'epsilon_normalized.all'
+#     rpt_times = 1
 
+
+def config_data_numLearners_rpt(data_filename, num_of_clients, rpt_times=1):
+    dirname = '../data/original_data/'
     if(data_filename == 'covtype.libsvm.binary'):
         dimension = 54
         datasize = 581012

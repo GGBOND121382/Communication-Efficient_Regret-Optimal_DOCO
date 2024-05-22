@@ -4,12 +4,11 @@ import time
 import sys
 sys.path.append('../')
 
-from config_save_load import conf_load
 from optimization_utils.LogisticRegression import *
 from optimization_utils.cutting_plane_Vaidya import *
 from optimization_utils.communication_budget import *
 from data.libsvm_data_load import *
-
+from data.config_save_load import *
 
 def oracle_comm_const_iid_CP(comm_const, time_horizon, num_of_clients, mu, num_parallel, dimension, Lip_cons, C_norm, M_cons):
     print("stretch factor:", comm_const)
@@ -159,7 +158,7 @@ def parallel_run_cutting_plane_dist(grad_logReg, loss_logReg, cutting_oracle_l2,
     return loss_mean, class_err_mean, comm_cost
 
 
-def run():
+def run_comm():
     conf_dict = conf_load()
     dirname = conf_dict['dirname']
     filename = conf_dict['data']
@@ -171,14 +170,20 @@ def run():
     is_minus_one = conf_dict['is_minus_one']
     radius = conf_dict['radius']
 
-    if ('covtype' in filename):
+    if ('covtype' in filename and number_of_clients == 32):
         comm_budget_list = [100, ] + [i for i in range(200, 3000, 200)] + [i for i in range(3000, 7000, 800)]
         # comm_budget_list = [i for i in range(3000, 7000, 800)]
-    else:
+    elif ('covtype' not in filename and number_of_clients == 32):
         # comm_budget_list = [100, 200, 400, 600, 800, 1000, 1400, 1800, 2200]
         # comm_budget_list = [100, 800, 1200, 1600] + [i for i in range(2200, 7000, 800)]
-        comm_budget_list = [i for i in range(200, 800, 200)]
+        # comm_budget_list = [i for i in range(200, 800, 200)]
+        comm_budget_list = [100, 200, 400, 600, 800, 1200, 1600] + [i for i in range(2200, 4800, 800)]
         # comm_budget_list = [300, ]
+    elif ('covtype' in filename and number_of_clients == 8):
+        comm_budget_list = [100, ] + [i for i in range(200, 3000, 200)]
+    else:
+        comm_budget_list = [100, 200, 300, 400, 600, 800, 1000, 1400, 1800, 2200]
+
     startTime = time.time()
     data_collection, target_collection = load_data_collection_from_file(filename, dimension,
                                                                         num_of_clients=number_of_clients,
@@ -192,7 +197,7 @@ def run():
     for comm_bueget in comm_budget_list:
         if(comm_bueget > 36000):                    # if comm_budget > 36000, the batch size is too small
             break
-        plot_filename = './plot_data/CP_' + filename + '_' + repr(comm_bueget)
+        plot_filename = './plot_data_' + filename[:3] + '_' + repr(number_of_clients) + '/CP_' + filename + '_' + repr(comm_bueget)
         fd = open(plot_filename, 'a')
         startTime = time.time()
         loss_mean, class_err_mean, comm_cost = parallel_run_cutting_plane_dist(grad_logReg, loss_logReg,
@@ -210,5 +215,62 @@ def run():
         fd.close()
 
 
-if __name__ == '__main__':
-    run()
+def run_time():
+    conf_dict = conf_load()
+    dirname = conf_dict['dirname']
+    filename = conf_dict['data']
+    dimension = conf_dict['dimension']
+    datasize = conf_dict['datasize']
+    rpt_times = conf_dict['rpt_times']
+    number_of_clients = conf_dict['number_of_clients']
+    to_shuffle = conf_dict['to_shuffle']
+    is_minus_one = conf_dict['is_minus_one']
+    radius = conf_dict['radius']
+    if ('covtype' in filename):
+        comm_budget_list = [100, ] + [i for i in range(200, 3000, 200)]
+    else:
+        # comm_budget_list = [100, 200, 400, 600, 800, 1000, 1400, 1800, 2200]
+        comm_budget_list = [300, ]
+
+    startTime = time.time()
+    original_data_collection, original_target_collection = load_data_collection_from_file(filename, dimension,
+                                                                                          num_of_clients=number_of_clients,
+                                                                                          dirname=dirname)
+    original_data_collection = data_collection_preprocess(original_data_collection)
+    # target_collection = target_adversarize(target_collection, number_of_clients, kb=3)
+    time_horizon, n_features = original_data_collection[0].shape
+    endTime = time.time()
+    print("Data loaded: " + repr(endTime - startTime) + "seconds")
+    # print("y", target_collection[0][:10, :])
+    # print("max ||x||_2:", np.max(np.linalg.norm(data_collection[0], axis=1)))
+
+    unit_time_step = int(time_horizon / 5)
+    for i in range(1, 6):
+        running_time_horizon = i * unit_time_step
+        data_collection, target_collection = load_data_collection_interval_dist(original_data_collection,
+                                                                                original_target_collection, dimension,
+                                                                                0, running_time_horizon,
+                                                                                number_of_clients)
+        for comm_bueget in comm_budget_list:
+            if(comm_bueget > 36000 / 5 * i):                    # if comm_budget > 36000, the batch size is too small
+                break
+            plot_filename = './plot_data_' + filename[:3] + '_' + repr(number_of_clients) + '/CP_' + filename + '_' + repr(comm_bueget) + '_' + repr(running_time_horizon)
+            fd = open(plot_filename, 'a')
+            startTime = time.time()
+            loss_mean, class_err_mean, comm_cost = parallel_run_cutting_plane_dist(grad_logReg, loss_logReg,
+                                                                                   cutting_oracle_l2, data_collection,
+                                                                                   target_collection, number_of_clients,
+                                                                                   number_of_clients, comm_bueget,
+                                                                                   radius=radius, is_l2_norm=True)
+            endTime = time.time()
+            print("OCO complete: " + repr(endTime - startTime) + "seconds")
+
+            print(f'filename = {filename}, comm_budget = {comm_bueget}, loss_mean = {loss_mean},'
+                  f' class_err_mean={class_err_mean}, comm_cost = {comm_cost}')
+
+            fd.write(repr(loss_mean) + ' ' + repr(class_err_mean) + ' ' + repr(comm_cost) + '\n')
+            fd.close()
+
+
+# if __name__ == '__main__':
+#     run()

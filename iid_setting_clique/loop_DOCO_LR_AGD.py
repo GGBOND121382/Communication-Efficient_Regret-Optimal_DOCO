@@ -4,13 +4,12 @@ import time
 import sys
 sys.path.append('../')
 
-from config_save_load import conf_load
 from optimization_utils.LogisticRegression import *
 from optimization_utils.acc_grad_descent import *
 from optimization_utils.communication_budget import *
 from data.libsvm_data_load import *
 # from libsvm_data_load import load_libsvm_data
-
+from data.config_save_load import *
 
 def oracle_comm_const_iid_AGD(comm_const, time_list, num_of_clients, mu):
     inner_batchsize_prime = mu + num_of_clients
@@ -164,7 +163,7 @@ def parallel_run_AGD_dist(grad_logReg, data_collection, target_collection, num_o
     return loss_mean, class_err_mean, comm_cost
 
 
-def run():
+def run_comm():
 
     conf_dict = conf_load()
     dirname = conf_dict['dirname']
@@ -211,11 +210,13 @@ def run():
     # print("num_parallel:", num_parallel)
 
     for comm_bueget in comm_budget_list:
-        if(comm_bueget < 620):
+        if comm_bueget < 620 and number_of_clients == 32:
             continue
-        if(comm_bueget > 20000):                    # if comm_budget > 36000, the batch size is too small
+        if comm_bueget > 20000 and number_of_clients == 32:                    # if comm_budget > 36000, the batch size is too small
             break
-        plot_filename = './plot_data/AGD_' + filename + '_' + repr(comm_bueget)
+        elif comm_bueget > 36000 and number_of_clients == 8:
+            break
+        plot_filename = './plot_data_' + filename[:3] + '_' + repr(number_of_clients) + '/AGD_' + filename + '_' + repr(comm_bueget)
         fd = open(plot_filename, 'a')
         startTime = time.time()
         loss_mean, class_err_mean, comm_cost = parallel_run_AGD_dist(grad_logReg, data_collection, target_collection,
@@ -235,5 +236,83 @@ def run():
         fd.close()
 
 
-if __name__ == '__main__':
-    run()
+def run_time():
+
+    conf_dict = conf_load()
+    dirname = conf_dict['dirname']
+    # dirname = '../data/iid_data/'
+    filename = conf_dict['data']
+    dimension = conf_dict['dimension']
+    datasize = conf_dict['datasize']
+    rpt_times = conf_dict['rpt_times']
+    number_of_clients = conf_dict['number_of_clients']
+    to_shuffle = conf_dict['to_shuffle']
+    is_minus_one = conf_dict['is_minus_one']
+    radius = conf_dict['radius']
+    comm_budget_list = conf_dict['comm_budget_list']
+
+    '''
+    startTime = time.time()
+    X = np.load(dirname + filename + '_data.npy')
+    y = np.load(dirname + filename + '_target.npy')
+    endTime = time.time()
+    print("Data loaded: " + repr(endTime - startTime) + "seconds")
+    print('X\'s maximum norm: ' + repr(max(np.linalg.norm(X, axis=1))))
+    startTime = time.time()
+    X = MaxAbsScaler().fit_transform(X)
+    X = preprocessing.normalize(X, norm='l2')
+    y = np.array(y, dtype=int)
+    y = np.reshape(y, (-1, 1))
+    negative_per = 1 - np.sum(y) / datasize
+    endTime = time.time()
+    print("Preprocessing complete: " + repr(endTime - startTime) + "seconds")
+    print("positive percentage:", negative_per)
+    '''
+
+    startTime = time.time()
+    original_data_collection, original_target_collection = load_data_collection_from_file(filename, dimension,
+                                                                                          num_of_clients=number_of_clients,
+                                                                                          dirname=dirname)
+    original_data_collection = data_collection_preprocess(original_data_collection)
+    # target_collection = target_adversarize(target_collection, number_of_clients, kb=3)
+    time_horizon, n_features = original_data_collection[0].shape
+    endTime = time.time()
+    print("Data loaded: " + repr(endTime - startTime) + "seconds")
+    # print("y", target_collection[0][:10, :])
+    # print("max ||x||_2:", np.max(np.linalg.norm(data_collection[0], axis=1)))
+
+    num_parallel = int(np.log(np.log(datasize / number_of_clients)))
+    # print("num_parallel:", num_parallel)
+
+    unit_time_step = int(time_horizon / 5)
+    for i in range(1, 6):
+        running_time_horizon = i * unit_time_step
+        data_collection, target_collection = load_data_collection_interval_dist(original_data_collection,
+                                                                                original_target_collection, dimension,
+                                                                                0, running_time_horizon,
+                                                                                number_of_clients)
+        for comm_bueget in comm_budget_list:
+            if(comm_bueget > 36000 / 5 * i):                    # if comm_budget > 36000, the batch size is too small
+                break
+            plot_filename = './plot_data_' + filename[:3] + '_' + repr(number_of_clients) + '/AGD_' + filename + '_' + repr(comm_bueget) + '_' + repr(running_time_horizon)
+            fd = open(plot_filename, 'a')
+            startTime = time.time()
+            loss_mean, class_err_mean, comm_cost = parallel_run_AGD_dist(grad_logReg, data_collection, target_collection,
+                                                                         number_of_clients, 2, comm_bueget,
+                                                                         radius=radius, is_l2_norm=True)
+            endTime = time.time()
+
+
+            # for i in range(number_of_clients):
+            #     print(target_collection[i][:10])
+
+            print("OCO complete: " + repr(endTime - startTime) + "seconds")
+            print(f'filename = {filename}, comm_budget = {comm_bueget}, loss_mean = {loss_mean},'
+                  f' class_err_mean={class_err_mean}, comm_cost = {comm_cost}')
+
+            fd.write(repr(loss_mean) + ' ' + repr(class_err_mean) + ' ' + repr(comm_cost) + '\n')
+            fd.close()
+
+
+# if __name__ == '__main__':
+#     run()

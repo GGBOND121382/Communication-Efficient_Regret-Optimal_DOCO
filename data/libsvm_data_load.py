@@ -2,7 +2,6 @@ import sys
 
 import numpy as np
 import time
-from config_save_load import conf_load
 import copy
 from sklearn import preprocessing
 from sklearn.preprocessing import MaxAbsScaler
@@ -228,6 +227,21 @@ def download_unzip_from_libsvm(filename):
         open(newFilePath, 'wb').write(data)
 
 
+def target_adversarize(target_collection, num_of_clients=8, kb=3):
+    time_horizon = len(target_collection[0])
+    len_interval = int(np.ceil(time_horizon / kb))
+    ret_target_collection = []
+    for i in range(num_of_clients):
+        client_data = np.zeros(target_collection[0].shape)
+        for t in range(kb):
+            data_record = target_collection[i][t * len_interval:(t + 1) * len_interval, :]
+            if (t % 2 == 1):
+                data_record = 1 - data_record
+            client_data[t * len_interval:(t + 1) * len_interval] = data_record
+        ret_target_collection.append(client_data)
+    return ret_target_collection
+
+
 if __name__ == '__main__':
     # conf_dict = conf_load()
     # dirname = conf_dict['dirname']
@@ -318,4 +332,3 @@ if __name__ == '__main__':
         data_save_from_libsvm(dirname, data_filename, dimension, datasize, to_shuffle, is_minus_one)
         if (data_filename == 'epsilon_normalized.all'):
             data_vertical_merge('epsilon_normalized', 'epsilon_normalized.t', data_filename)
-
