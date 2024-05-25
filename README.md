@@ -31,7 +31,7 @@ Use Git to clone the repository:
 $ git clone https://github.com/GGBOND121382/Communication-Efficient_Regret-Optimal_DOCO.git
 ```
 
-Installation should take less than 1 minute with a normal PC and sufficient internet connection speed (>500 kbps) as the files are less than 1 MB in total size. There is no compilation needed as they are run directly over interpreted Python source code.
+Installation should take less than 1 minute with a normal PC and sufficient internet connection speed (>500 kbps) as the files are less than 3 MB in total size. There is no compilation needed as they are run directly over interpreted Python source code.
 
 ### How to Deploy the Code on the Resources
 
@@ -47,9 +47,9 @@ Then, create a container `doco-exper`:
 $ docker run -itd --name doco-exper doco:v1 /bin/bash
 ```
 
-Estimated deploy time: 2 minutes.
+Estimated deploy time: 5 to 10 minutes.
 
-If the above command takes longer to deploy the image, please check that you have a sufficient internet connection speed (>500 kbps) and a reasonable CPU.
+If the above command takes much longer to deploy the image, please check that you have a sufficient internet connection speed (>500 kbps) and a reasonable CPU.
 
 
 ## Reproducibility of Experiments
