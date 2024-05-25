@@ -59,9 +59,13 @@ def parallel_run_AGD_dist(grad_logReg, data_collection, target_collection, num_o
         T_list.append(t_i)
 
     comm_budget_m = comm_budget - comm_cost
-    assert comm_budget_m > 0
+    # assert comm_budget_m > 0
+    if (comm_budget_m < 0):
+        return None, None, None
     comm_const = determine_comm_const_AGD(oracle_comm_const_iid_AGD, comm_budget_m, time_horizon, 0, T_list_m,
                                           num_of_client, mu)
+    if (comm_const == None):
+        return None, None, None
     print("comm_const:", comm_const)
 
     for i in range(num_parallel_prime, num_parallel):
@@ -271,7 +275,8 @@ def run_time():
             print(f'filename = {filename}, comm_budget = {comm_bueget}, loss_mean = {loss_mean},'
                   f' class_err_mean={class_err_mean}, comm_cost = {comm_cost}')
 
-            fd.write(repr(loss_mean) + ' ' + repr(class_err_mean) + ' ' + repr(comm_cost) + '\n')
+            if (loss_mean != None):
+                fd.write(repr(loss_mean) + ' ' + repr(class_err_mean) + ' ' + repr(comm_cost) + '\n')
             fd.close()
 
 

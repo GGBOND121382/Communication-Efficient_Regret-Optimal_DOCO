@@ -72,12 +72,14 @@ def data_save_from_libsvm(dirname, filename, dimension, datasize, to_shuffle, is
 
     if (filename == 'epsilon_normalized.all'):
         startTime = time.time()
-        X1, y1 = load_libsvm_data('epsilon_normalized', dimension, datasize=datasize, to_shuffle=to_shuffle,
+        X1, y1 = load_libsvm_data('epsilon_normalized', dimension, datasize=400000, to_shuffle=to_shuffle,
                                   is_minus_one=is_minus_one)
-        X2, y2 = load_libsvm_data('epsilon_normalized.t', dimension, datasize=datasize, to_shuffle=to_shuffle,
+        X2, y2 = load_libsvm_data('epsilon_normalized.t', dimension, datasize=100000, to_shuffle=to_shuffle,
                                   is_minus_one=is_minus_one)
-        X = np.vstack(X1, X2)
-        y = np.vstack(y1, y2)
+        X = np.vstack((X1, X2))
+        y1 = np.reshape(y1, (-1, 1))
+        y2 = np.reshape(y2, (-1, 1))
+        y = np.vstack((y1, y2))
         endTime = time.time()
         print("Data loaded: " + repr(endTime - startTime) + "seconds")
     else:
@@ -95,11 +97,11 @@ def data_save_from_libsvm(dirname, filename, dimension, datasize, to_shuffle, is
     endTime = time.time()
     print("Data saved (np): " + repr(endTime - startTime) + "seconds")
 
-    startTime = time.time()
-    X = np.load(dirname + filename + '_data.npy')
-    y = np.load(dirname + filename + '_target.npy')
-    endTime = time.time()
-    print("Data loaded (np): " + repr(endTime - startTime) + "seconds")
+    # startTime = time.time()
+    # X = np.load(dirname + filename + '_data.npy')
+    # y = np.load(dirname + filename + '_target.npy')
+    # endTime = time.time()
+    # print("Data loaded (np): " + repr(endTime - startTime) + "seconds")
 
 
 def load_data_collection_from_file(filename, dimension, num_of_clients=8, dirname='non_iid_data/'):
@@ -202,6 +204,7 @@ def download_unzip_from_libsvm(filename):
         save_path = "./original_data/epsilon_normalized.bz2"
         print("Downloading epsilon_normalized.bz2...")
         wget.download(url, save_path, bar=wget.bar_adaptive)
+        print()
         zipFile = bz2.BZ2File(save_path)
         data = zipFile.read()
         newFilePath = save_path[:-4]
@@ -211,6 +214,7 @@ def download_unzip_from_libsvm(filename):
         save_path = "./original_data/epsilon_normalized.t.bz2"
         print("Downloading epsilon_normalized.t.bz2...")
         wget.download(url, save_path, bar=wget.bar_adaptive)
+        print()
         zipFile = bz2.BZ2File(save_path)
         data = zipFile.read()
         newFilePath = save_path[:-4]
@@ -221,6 +225,7 @@ def download_unzip_from_libsvm(filename):
         save_path = "./original_data/covtype.libsvm.binary.bz2"
         print("Downloading covtype.libsvm.binary.bz2...")
         wget.download(url, save_path, bar=wget.bar_adaptive)
+        print()
         zipFile = bz2.BZ2File(save_path)
         data = zipFile.read()
         newFilePath = save_path[:-4]
@@ -274,61 +279,57 @@ if __name__ == '__main__':
                 dimension = 54
                 datasize = 581012
                 radius = 20
-                to_shuffle = True
+                to_shuffle = False
                 is_minus_one = False
             elif (data_filename == 'epsilon_normalized'):
                 dimension = 2000
                 datasize = 400000
                 radius = 20
-                to_shuffle = True
+                to_shuffle = False
                 is_minus_one = True
             elif (data_filename == 'epsilon_normalized.t'):
                 dimension = 2000
                 datasize = 100000
                 radius = 20
-                to_shuffle = True
+                to_shuffle = False
                 is_minus_one = True
             elif (data_filename == 'epsilon_normalized.all'):
                 dimension = 2000
                 datasize = 500000
                 radius = 20
-                to_shuffle = True
+                to_shuffle = False
                 is_minus_one = True
             else:
                 assert False
             download_unzip_from_libsvm(data_filename)
             data_save_from_libsvm(dirname, data_filename, dimension, datasize, to_shuffle, is_minus_one)
-            if (data_filename == 'epsilon_normalized.all'):
-                data_vertical_merge('epsilon_normalized', 'epsilon_normalized.t', data_filename)
     else:
         dirname = '../data/original_data/'
         if (data_filename == 'covtype.libsvm.binary'):
             dimension = 54
             datasize = 581012
             radius = 20
-            to_shuffle = True
+            to_shuffle = False
             is_minus_one = False
         elif (data_filename == 'epsilon_normalized'):
             dimension = 2000
             datasize = 400000
             radius = 20
-            to_shuffle = True
+            to_shuffle = False
             is_minus_one = True
         elif (data_filename == 'epsilon_normalized.t'):
             dimension = 2000
             datasize = 100000
             radius = 20
-            to_shuffle = True
+            to_shuffle = False
             is_minus_one = True
         elif (data_filename == 'epsilon_normalized.all'):
             dimension = 2000
             datasize = 500000
             radius = 20
-            to_shuffle = True
+            to_shuffle = False
             is_minus_one = True
         else:
             assert False
         download_unzip_from_libsvm(data_filename)
         data_save_from_libsvm(dirname, data_filename, dimension, datasize, to_shuffle, is_minus_one)
-        if (data_filename == 'epsilon_normalized.all'):
-            data_vertical_merge('epsilon_normalized', 'epsilon_normalized.t', data_filename)

@@ -43,16 +43,16 @@ if __name__ == '__main__':
     data.config_save_load.config_data_numLearners_rpt(data_filename, num_learners)
 
     os.chdir('../iid_setting')
-    iid_setting.config_save_load.config_data_numLearners_rpt(data_filename, num_learners)
+    iid_setting.config_save_load.config_data_numLearners_rpt(data_filename, num_learners, isForTime=True)
 
     os.chdir('../iid_setting_clique')
-    iid_setting_clique.config_save_load.config_data_numLearners_rpt(data_filename, num_learners)
+    iid_setting_clique.config_save_load.config_data_numLearners_rpt(data_filename, num_learners, isForTime=True)
 
     os.chdir('../non_iid_setting')
-    non_iid_setting.config_save_load.config_data_numLearners_rpt(data_filename, num_learners)
+    non_iid_setting.config_save_load.config_data_numLearners_rpt(data_filename, num_learners, isForTime=True)
 
     os.chdir('../non_iid_setting_clique')
-    non_iid_setting_clique.config_save_load.config_data_numLearners_rpt(data_filename, num_learners)
+    non_iid_setting_clique.config_save_load.config_data_numLearners_rpt(data_filename, num_learners, isForTime=True)
 
     os.chdir('../adv_setting')
     adv_setting.config_save_load.config_data_numLearners_rpt(data_filename, num_learners)

@@ -88,6 +88,9 @@ def parallel_run_cutting_plane_dist(grad_logReg, loss_logReg, cutting_oracle_l2,
     comm_const = determine_comm_const_CP(oracle_comm_const_iid_CP, comm_budget, lwr_const, upp_const, time_horizon,
                                          num_of_client, mu, num_parallel, n_features, Lip_cons, C_norm, M_cons)
 
+    if (comm_const == None):
+        return None, None, None
+
     comm_cost = 0
     T_list = []
     batch_list = []
@@ -225,11 +228,16 @@ def run_time():
     to_shuffle = conf_dict['to_shuffle']
     is_minus_one = conf_dict['is_minus_one']
     radius = conf_dict['radius']
-    if ('covtype' in filename):
+    # if ('covtype' in filename):
+    #     comm_budget_list = [100, ] + [i for i in range(200, 3000, 200)]
+    # else:
+    #     # comm_budget_list = [100, 200, 400, 600, 800, 1000, 1400, 1800, 2200]
+    #     comm_budget_list = [300, ]
+    if ('covtype' in filename and number_of_clients == 8):
         comm_budget_list = [100, ] + [i for i in range(200, 3000, 200)]
     else:
         # comm_budget_list = [100, 200, 400, 600, 800, 1000, 1400, 1800, 2200]
-        comm_budget_list = [300, ]
+        comm_budget_list = [100, ] + [i for i in range(200, 8000, 200)]
 
     startTime = time.time()
     original_data_collection, original_target_collection = load_data_collection_from_file(filename, dimension,
@@ -267,7 +275,8 @@ def run_time():
             print(f'filename = {filename}, comm_budget = {comm_bueget}, loss_mean = {loss_mean},'
                   f' class_err_mean={class_err_mean}, comm_cost = {comm_cost}')
 
-            fd.write(repr(loss_mean) + ' ' + repr(class_err_mean) + ' ' + repr(comm_cost) + '\n')
+            if (loss_mean != None):
+                fd.write(repr(loss_mean) + ' ' + repr(class_err_mean) + ' ' + repr(comm_cost) + '\n')
             fd.close()
 
 # if __name__ == '__main__':
